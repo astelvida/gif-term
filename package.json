@@ -1,6 +1,6 @@
 {
     "name": "@astelvida/gifcat",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Translate text to gifs",
     "license": "MIT",
     "bin": "cli.js",
