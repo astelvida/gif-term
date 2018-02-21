@@ -7,59 +7,68 @@ const chalk = require('chalk');
 const iterm2Version = require('iterm2-version');
 
 const get = require('./get.js');
+const gifParty = require('./gifParty.js');
+
+const { log } = console;
 
 const BASE_URL = 'https://api.giphy.com/v1';
 const PUBLIC_GIPHY_API_KEY = '3eFQvabDx69SMoOemSPiYfh9FY0nzO9x';
 const GIPHY_API_KEY = process.env.GIPHY_API_KEY || PUBLIC_GIPHY_API_KEY;
 
-function url(text, isSticker) {
-    const urlPath = `${isSticker ? 'stickers' : 'gifs'}/${text ? 'translate' : 'random'}`;
-    const requestParams = { api_key: GIPHY_API_KEY };
-    if (text) {
-        requestParams.s = text;
-    }
-    return `${BASE_URL}/${urlPath}?${querystring.stringify(requestParams)}`;
+const queryKeys = {
+    'search': 'q',
+    'translate': 's',
+    'random': 'tag',
+}
+
+function url(text, service, endpoint) {
+    const requestParams = { 
+        api_key: GIPHY_API_KEY,
+        [queryKeys[endpoint]]: text,
+        limit: 30,
+    };
+    return `${BASE_URL}/${service}/${endpoint}?${querystring.stringify(requestParams)}`;
 }
 
 function logError(err) {
-    console.log(chalk.hex('#FF5252')(`${err.message}`));
+    log(chalk`{red.bold Error:} ${JSON.stringify(err.message)}`);
 }
 
 async function textToGif(text, options) {
-    const apiUrl = url(text, options.sticker);
+    const apiUrl = url(text, options.service, options.endpoint);
+    log(apiUrl);
+
+    const { data } = await get(apiUrl);
+
+    if (options.endpoint === 'search') {
+        const urls = data.map(entry => entry.images.fixed_height_downsampled.url);
+        const buffer = await gifParty(`${text.replace(/[\W]+/g, '')}.gif`, urls);
+        log('\033]1337;File=inline=1;height=' + options.size + ':' + buffer.toString('base64') + '\u0007');
+        // const urls = data.map(entry => Object.keys(entry.images).map(key => ({ [key] : entry.images[key].size })));
+    } else {
+        const [{ images: { fixed_height }, title }] = data;
+        
+        const imgBuffer = await get(fixed_height.url);
+
+        if (options.localPath) {
+            fs.writeFile(options.localPath, imgBuffer, (err) =>
+                err ? logError(err) :
+                log(chalk.green(`Saved file at ${chalk.blue.bold(options.localPath)}`))
+            );
+        }
     
-    const { data: { images, title }} = await get(apiUrl);
-
-    const imgBuffer = await get(images.fixed_height.url);
-
-    if (options.file !== null) {
-        const { name, ext, dir } = path.parse(options.file);
-        const fileName = options.file === '' ? 
-            `${text ? text.replace(/[\W]+/g, '') : 'random'}.gif` :
-            `${name}${ext || '.gif'}`;
-        const filePath = path.resolve(dir, fileName);
-
-        fs.writeFile(filePath, imgBuffer, (err) => {
-            if (err) {
-                return err.code === 'ENOENT' ? 
-                    console.log(chalk.hex('#FFD740')(`Couldn't save image - no such path ${chalk.bold(filePath)}`)) : 
-                    logError(err);
-            }
-            console.log(chalk.hex('#76FF03')(`Saved file at ${chalk.hex('#8C9EFF').bold(filePath)}`));
-        });
+        if (options.clip) {
+            clipboardy.writeSync(fixed_height.url);        
+        }
+        log(chalk.magenta.bold(title));
+        log('\033]1337;File=inline=1;height=' + options.size + ':' + imgBuffer.toString('base64') + '\u0007')
     }
 
-    if (options.copy) {
-        clipboardy.writeSync(images.fixed_height.url);        
-    }
-
-    console.log(chalk.magenta.bold(title));
-    console.log('\033]1337;File=inline=1;height=' + options.size + ':' + imgBuffer.toString('base64') + '\u0007')
 }
 
 
 function handleTerminalError(message) {
-    console.log(
+    log(
         chalk.yellow.bold(message) + 
         ' is not supported. Please install the latest stable release of '+
         chalk.green.bold('iTerm2 - ') + 
@@ -68,7 +77,7 @@ function handleTerminalError(message) {
     process.exit();
 }
 
-function main(text, options) {
+function main(text, flags) {
     const { TERM_PROGRAM } = process.env;
 
     if (TERM_PROGRAM !== 'iTerm.app') {
@@ -80,7 +89,21 @@ function main(text, options) {
         handleTerminalError(`iTerm2@${version}`);
     }
 
-    textToGif(text, options);
+    const { sticker, party, file, clip, size } = flags;
+
+    const service = sticker ? 'stickers' : 'gifs';
+    const endpoint = party ? 'search' : text ? 'translate' : 'random';
+    
+    let localPath = null;
+    if (file !== null) {
+        const { name, ext, dir } = path.parse(file);
+        const fileName = file === '' ? 
+            `${text ? text.replace(/[\W]+/g, '') : 'random'}.gif` :
+            `${name}${ext || '.gif'}`;
+        localPath = path.resolve(dir, fileName);
+    }
+    
+    textToGif(text, { service, endpoint, localPath, clip, size });
 }
 
 module.exports = main;

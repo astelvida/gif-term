@@ -17,12 +17,13 @@ function get(url) {
 
                 case 'application/json':
                 default: {
-                    let data = '';
+                    let body = '';
                     resp.on('data', chunk => {
-                        data += chunk;
+                        body += chunk;
                     });
                     resp.on('end', () => {
-                        res(JSON.parse(data));
+                        const { data } = JSON.parse(body);
+                        res({ data: [].concat(data)});
                     });
                     break;
                 }
