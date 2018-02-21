@@ -1,0 +1,1 @@
+Giphy API docs: https://developers.giphy.com/docs/ 

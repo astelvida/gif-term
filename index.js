@@ -4,6 +4,7 @@ const querystring = require('querystring');
 const minimist = require('minimist');
 const clipboardy = require('clipboardy');
 const chalk = require('chalk');
+const iterm2Version = require('iterm2-version');
 
 const get = require('./get.js');
 
@@ -22,9 +23,10 @@ function url(text, isSticker) {
 }
 
 
-function errorGenericLog(err) {
+function logError(err) {
     console.log(chalk.hex('#FF5252')(`${err.message}`));
 }
+
 
 function textToGif(text, options) {
     const apiUrl = url(text, options.sticker);
@@ -49,7 +51,7 @@ function textToGif(text, options) {
                     if (err) {
                         return err.code === 'ENOENT' ? 
                             console.log(chalk.hex('#FFD740')(`Couldn't save image - no such path ${chalk.bold(filePath)}`)) : 
-                            errorGenericLog(err);
+                            logError(err);
                     }
                     console.log(chalk.hex('#76FF03')(`Saved file at ${chalk.hex('#8C9EFF').bold(filePath)}`));
                 });
@@ -57,7 +59,34 @@ function textToGif(text, options) {
 
             console.log('\033]1337;File=inline=1;height=' + options.size + ':' + imgBuffer.toString('base64') + '\u0007')
         })
-        .catch(errorGenericLog);
+        .catch(logError);
 }
 
-module.exports = textToGif;
+
+function handleTerminalError(message) {
+    console.log(
+        chalk.yellow.bold(message) + 
+        ' is not supported. Please install the latest stable release of '+
+        chalk.green.bold('iTerm2 - ') + 
+        chalk.underline('https://www.iterm2.com/downloads.html')
+    );
+    process.exit();
+}
+
+function main(text, options) {
+
+    const { TERM_PROGRAM } = process.env;
+
+    if (TERM_PROGRAM !== 'iTerm.app') {
+        handleTerminalError(`${TERM_PROGRAM}`);
+    }
+    
+    const version = iterm2Version();
+    if ( TERM_PROGRAM === 'iTerm.app' && Number(version.charAt(0)) < 3) {
+        handleTerminalError(`iTerm2@${version}`);
+    }
+
+    textToGif(text, options);
+}
+
+module.exports = main;

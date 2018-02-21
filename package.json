@@ -1,14 +1,39 @@
 {
-  "name": "gifcat",
-  "version": "1.0.0",
-  "description": "Translate text to gifs",
-  "main": "cli.js",
-  "author": "astelvida",
-  "license": "MIT",
-  "dependencies": {
-    "chalk": "^2.3.1",
-    "clipboardy": "^1.2.3",
-    "meow": "^4.0.0",
-    "minimist": "^1.2.0"
-  }
+    "name": "gifcat",
+    "version": "1.0.0",
+    "description": "Translate text to gifs",
+    "license": "MIT",
+    "main": "cli.js",
+    "author": {
+        "name": "astelvida",
+        "email": "sevda.m.anefi@gmail.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/astelvida/gifcat.git"
+    },
+    "dependencies": {
+        "chalk": "^2.3.1",
+        "clipboardy": "^1.2.3",
+        "iterm2-version": "^2.3.0",
+        "meow": "^4.0.0",
+        "minimist": "^1.2.0"
+    },
+    "keywords": [
+        "gif",
+        "gifs",
+        "giphy",
+        "image",
+        "iterm",
+        "iterm2",
+        "terminal",
+        "console",
+        "shell",
+        "command-line",
+        "cli",
+        "text",
+        "stickers",
+        "app",
+        "version"
+    ]
 }
