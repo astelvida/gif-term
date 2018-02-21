@@ -1,0 +1,8 @@
+{
+  "name": "gifcat",
+  "version": "1.0.0",
+  "description": "Translate text to gifs",
+  "main": "cli.js",
+  "author": "astelvida",
+  "license": "MIT"
+}
