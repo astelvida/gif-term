@@ -4,5 +4,11 @@
   "description": "Translate text to gifs",
   "main": "cli.js",
   "author": "astelvida",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^2.3.1",
+    "clipboardy": "^1.2.3",
+    "meow": "^4.0.0",
+    "minimist": "^1.2.0"
+  }
 }

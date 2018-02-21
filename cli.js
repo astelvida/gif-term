@@ -2,7 +2,7 @@
 'use strict';
 
 const meow = require('meow');
-const textToGif = require('.');
+const textToGif = require('./index.js');
 
 const cli = meow(
     `
@@ -45,7 +45,5 @@ const cli = meow(
         }
     }
 );
-
-
-console.log(cli.input[0], cli.flags)
+// console.log(cli.input[0], cli.flags)
 textToGif(cli.input[0], cli.flags);
