@@ -1,9 +1,9 @@
 {
-    "name": "gifcat",
+    "name": "@astelvida/gifcat",
     "version": "1.0.0",
     "description": "Translate text to gifs",
     "license": "MIT",
-    "main": "cli.js",
+    "bin": "cli.js",
     "author": {
         "name": "astelvida",
         "email": "sevda.m.anefi@gmail.com"

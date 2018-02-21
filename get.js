@@ -28,9 +28,7 @@ function get(url) {
                 }
             }
         })
-        .on('error', err => {
-            rej(err);
-        });
+        .on('error', err => rej(err));
     });
 }
 
