@@ -25,47 +25,37 @@ function url(text, service, endpoint) {
     const requestParams = { 
         api_key: GIPHY_API_KEY,
         [queryKeys[endpoint]]: text,
-        limit: 30,
     };
     return `${BASE_URL}/${service}/${endpoint}?${querystring.stringify(requestParams)}`;
 }
 
-function logError(err) {
-    log(chalk`{red.bold Error:} ${JSON.stringify(err.message)}`);
-}
 
 async function textToGif(text, options) {
     const apiUrl = url(text, options.service, options.endpoint);
-    log(apiUrl);
-
     const { data } = await get(apiUrl);
 
+    let imgBuffer;
     if (options.endpoint === 'search') {
-        const urls = data.map(entry => entry.images.fixed_height_downsampled.url);
-        const buffer = await gifParty(`${text.replace(/[\W]+/g, '')}.gif`, urls);
-        log('\033]1337;File=inline=1;height=' + options.size + ':' + buffer.toString('base64') + '\u0007');
-        // const urls = data.map(entry => Object.keys(entry.images).map(key => ({ [key] : entry.images[key].size })));
+        const urls = data.map(entry => entry.images.original.url);
+        // console.log('DATA', data.map(({ images: { original : { width, height } }}) => width / height).sort());
+        imgBuffer = await gifParty(`${text.replace(/[\W]+/g, '')}.gif`, urls);
+
     } else {
-        const [{ images: { fixed_height }, title }] = data;
-        
-        const imgBuffer = await get(fixed_height.url);
-
-        if (options.localPath) {
-            fs.writeFile(options.localPath, imgBuffer, (err) =>
-                err ? logError(err) :
-                log(chalk.green(`Saved file at ${chalk.blue.bold(options.localPath)}`))
-            );
-        }
-    
+        const { images: { fixed_height: { url } }, title } = data;
+        imgBuffer = await get(url);
         if (options.clip) {
-            clipboardy.writeSync(fixed_height.url);        
+            clipboardy.writeSync(url);        
         }
-        log(chalk.magenta.bold(title));
-        log('\033]1337;File=inline=1;height=' + options.size + ':' + imgBuffer.toString('base64') + '\u0007')
     }
-
+    
+    if (options.localPath) {
+        fs.writeFile(options.localPath, imgBuffer, (err) => err ? 
+            log(chalk`{red.bold Error:} ${JSON.stringify(err.message)}`) :
+            log(chalk.green(`Saved file at ${chalk.blue.bold(options.localPath)}`))
+        );
+    }
+    log('\033]1337;File=inline=1;height=' + options.size + ':' + imgBuffer.toString('base64') + '\u0007');
 }
-
 
 function handleTerminalError(message) {
     log(
@@ -78,6 +68,7 @@ function handleTerminalError(message) {
 }
 
 function main(text, flags) {
+
     const { TERM_PROGRAM } = process.env;
 
     if (TERM_PROGRAM !== 'iTerm.app') {
