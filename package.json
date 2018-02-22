@@ -13,15 +13,11 @@
         "url": "https://github.com/astelvida/gifcat.git"
     },
     "dependencies": {
-        "canvas": "^1.6.9",
         "chalk": "^2.3.1",
         "clipboardy": "^1.2.3",
         "gifencoder": "^1.1.0",
         "iterm2-version": "^2.3.0",
-        "meow": "^4.0.0",
-        "minimist": "^1.2.0",
-        "term-img": "^2.1.0",
-        "through2": "^2.0.3"
+        "meow": "^4.0.0"
     },
     "keywords": [
         "gif",

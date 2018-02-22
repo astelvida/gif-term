@@ -22,14 +22,16 @@ function get(url) {
                         body += chunk;
                     });
                     resp.on('end', () => {
-                        const { data } = JSON.parse(body);
-                        res({ data: [].concat(data)});
+                        res(JSON.parse(body));
                     });
                     break;
                 }
             }
         })
-        .on('error', err => rej(err));
+        .on('error', err => {
+            console.error(err);
+            rej(err)
+        });
     });
 }
 
