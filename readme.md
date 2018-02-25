@@ -1,12 +1,10 @@
 # gifcat
 
->  Translates words and phrases to a gif and displays it in the terminal.
-
-*Currently supported on [iTerm2 >= 3](https://www.iterm2.com/downloads.html).*
-
-## Demo
+>  Translates words and phrases to a GIF and displays it in the terminal.
 
 ![](./demo.gif)
+
+*Currently supported on [iTerm2 >= 3](https://www.iterm2.com/downloads.html).*
 
 ## Install
 
@@ -86,6 +84,8 @@ Type: `boolean`<br>
 Default: `true`
 
 Doesn't log the gif on the terminal. Useful if you only need the the gif image string.
+
+*Bonus! - a cool cat sticker is displayed while loading the gif*
 
 ## Docs
 
