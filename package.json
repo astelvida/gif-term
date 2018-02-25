@@ -21,7 +21,6 @@
         "concat-stream": "^1.6.0",
         "iterm2-version": "^2.3.0",
         "meow": "^4.0.0",
-        "pify": "^3.0.0"
     },
     "devDependencies": {
         "ava": "^0.25.0"

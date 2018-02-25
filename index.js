@@ -23,7 +23,7 @@ function logErrorAndExit(err) {
 
 function showRain(message) {
     message = message || 'No gif found. Try changing your input.'
-    const rainGif = fs.readFileSync('./media/rain.gif');
+    const rainGif = fs.readFileSync(path.resolve(__dirname, './media/rain.gif'));
     restorePos();
     readline.clearScreenDown(process.stdout);
     log(getImgString(rainGif, { width: 'auto', height: 5 }));
@@ -34,7 +34,7 @@ function showRain(message) {
 }
 
 function showCoolCat(message='') {
-    const spinner = fs.readFileSync('./media/cool_cat.gif');
+    const spinner = fs.readFileSync(path.resolve(__dirname, './media/cool_cat.gif'));
     const spinnerOpts = { height: 3, width: 8};
     savePos();
     log(getImgString(spinner, { height: 3, width: 8}));
@@ -91,7 +91,9 @@ async function textToGif(text, options) {
         const imgBuffer = await get.img(gifObj.images.original.url);
         
         options.clip && clipboardy.writeSync(gifObj.images.original.url);
-        options.save && fs.writeFile(options.save, imgBuffer, logErrorAndExit);
+        options.save && fs.writeFile(options.save, imgBuffer, 
+            (err) => (err ? logErrorAndExit(err) : chalk`{magenta saved in ${options.save}}`)
+        );
         
         return getImgString(imgBuffer, options);
     } catch (err) {
@@ -117,7 +119,7 @@ async function textToGif(text, options) {
             const fileName = text ? `${text.replace(/[\W]+/g, '')}.gif` : 'lucky.gif';
             options.save = path.resolve(fileName);
     
-        } else if (options.save && typeof opts.save === 'string') {
+        } else if (opts.save && typeof opts.save === 'string') {
             let { name } = path.parse(opts.save);
             options.save = path.resolve(`${name}.gif`)
         }
