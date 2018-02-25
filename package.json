@@ -3,7 +3,6 @@
     "version": "1.0.2",
     "description": "Translate text to gifs",
     "license": "MIT",
-    "bin": "cli.js",
     "author": {
         "name": "astelvida",
         "email": "sevda.m.anefi@gmail.com"

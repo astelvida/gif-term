@@ -23,7 +23,7 @@ function logErrorAndExit(err) {
 
 function showRain(message) {
     message = message || 'No gif found. Try changing your input.'
-    const rainGif = fs.readFileSync('./rain.gif');
+    const rainGif = fs.readFileSync('./media/rain.gif');
     restorePos();
     readline.clearScreenDown(process.stdout);
     log(getImgString(rainGif, { width: 'auto', height: 5 }));
@@ -34,7 +34,7 @@ function showRain(message) {
 }
 
 function showCoolCat(message='') {
-    const spinner = fs.readFileSync('./cool_cat.gif');
+    const spinner = fs.readFileSync('./media/cool_cat.gif');
     const spinnerOpts = { height: 3, width: 8};
     savePos();
     log(getImgString(spinner, { height: 3, width: 8}));
