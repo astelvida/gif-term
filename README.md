@@ -2,9 +2,11 @@
 
 >  Translates words and phrases to a gif and displays it in the terminal.
 
-Powered by GIPHY API
-
 *Currently supported on [iTerm2 >= 3](https://www.iterm2.com/downloads.html).*
+
+## Demo
+
+![](./demo.gif)
 
 ## Install
 
@@ -17,14 +19,14 @@ $ npm install gifcat
 ```js
 const gifcat = require('gifcat');
 
-gifcat('psychedelic pizza');
-// logs a relevant gif to the terminal using the default options
+gifcat('web surfing');
 
-gifcat('you can\'t sit with us', { 
+gifcat('🐰');
+
+gifcat('wait. what?', { 
     height: '50%',
-    save: 'meangirls.gif',  
+    save: 'lol.gif',  
 });
-// logs gif taking up to half the session's height and downloads it to the specified path
 
 gifcat('mind blown', { log : false })
     .then(gifString => doSomething(gifString));
@@ -34,7 +36,7 @@ gifcat('mind blown', { log : false })
 ## API
 
 ### gifcat(<text>, [options])
-
+ 
 Logs the matching Gif to the terminal. 
 Returns the string used to log the gif in the terminal.
 

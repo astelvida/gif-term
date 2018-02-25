@@ -10,6 +10,7 @@ const checkTermSupport = require('./checkTerm.js');
 const get = require('./get.js');
 
 const { log } = console;
+const logToTerm = (img, logImg = true) => ( logImg !== false ? log(img) : null)
 const savePos = () => process.stdout.write('\u001B[s');
 const restorePos = () => process.stdout.write('\u001B[u');
 
@@ -20,7 +21,7 @@ function logErrorAndExit(err) {
     process.exit();
 }
 
-function showRainAndExit(message) {
+function showRain(message) {
     message = message || 'No gif found. Try changing your input.'
     const rainGif = fs.readFileSync('./rain.gif');
     restorePos();
@@ -30,7 +31,6 @@ function showRainAndExit(message) {
     readline.moveCursor(process.stdout, 7, -3);
     log(chalk`{yellow.bold ${message}}  `);
     restorePos();
-    process.exit();
 }
 
 function showCoolCat(message='') {
@@ -38,8 +38,8 @@ function showCoolCat(message='') {
     const spinnerOpts = { height: 3, width: 8};
     savePos();
     log(getImgString(spinner, { height: 3, width: 8}));
-    readline.moveCursor(process.stdout, 6, -2);
-    log(chalk`{cyan.bold ${`Translating "${message}" to gif...`}}  `);
+    readline.moveCursor(process.stdout, 9, -2);
+    log(chalk`{cyan.bold ${`Translating "${message}" to gif...`} }  `);
 }
 
 const BASE_URL = 'https://api.giphy.com/v1'
@@ -81,10 +81,11 @@ async function textToGif(text, options) {
         const apiUrl = getApiUrl(text, options);
         const { data } = await get(apiUrl);
 
-        const gifObj = Array.isArray(data) ? data[90] : data;
+        const gifObj = Array.isArray(data) ? data[0] : data;
 
         if (!gifObj) {
-            showRainAndExit();
+            options.log && showRain();
+            process.exit();
         }
         
         const imgBuffer = await get.img(gifObj.images.original.url);
@@ -101,14 +102,16 @@ async function textToGif(text, options) {
  async function main(text = '', opts = {}) {
     try {
         checkTermSupport();
-        showCoolCat(text);
 
         const options = {};
         options.lib = (opts.stickers && text) ? 'stickers' : 'gifs';
         options.endpoint = !text ? 'search' : 'translate';
         options.width = opts.width || 'auto',
-        options.height = opts.height || '250px';
+        options.height = opts.height || '270px';
+        options.clip = options.clip || false;
         options.log = opts.log === false ? false : true;
+
+        options.log && showCoolCat(text);
 
         if (opts.save === true) {
             const fileName = text ? `${text.replace(/[\W]+/g, '')}.gif` : 'lucky.gif';
@@ -121,20 +124,15 @@ async function textToGif(text, options) {
 
         const termGif = await textToGif(text, options);
 
-        restorePos();
-        readline.clearScreenDown(process.stdout);
-
-        if (options.log !== false) {
-            log(termGif);
-        }
+        options.log && restorePos();
+        options.log && readline.clearScreenDown(process.stdout);
+        logToTerm(termGif, options.log);
 
         return termGif;
     } catch(err) {
         logErrorAndExit(err);
     }
 };
-
-main();
 
 module.exports = main;
 
