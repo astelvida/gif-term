@@ -1,38 +1,14 @@
 const https = require('https');
+const concat = require('concat-stream');
 
-function get(url) {
-    return new Promise((res, rej) => {
-        https.get(url, resp => {
-            switch (resp.headers['content-type']) {
-                case 'image/gif': {
-                    const data = [];
-                    resp.on('data', chunk => {
-                        data.push(Buffer.from(chunk));
-                    });
-                    resp.on('end', () => {
-                        res(Buffer.concat(data));
-                    });
-                    break;
-                }
+const makeGetRequest = f => url =>
+    new Promise(resolve =>
+        https.get(url, resp => 
+            resp.pipe(
+                concat(body => resolve(f(body)))
+            )
+        )
+    );
 
-                case 'application/json':
-                default: {
-                    let body = '';
-                    resp.on('data', chunk => {
-                        body += chunk;
-                    });
-                    resp.on('end', () => {
-                        res(JSON.parse(body));
-                    });
-                    break;
-                }
-            }
-        })
-        .on('error', err => {
-            console.error(err);
-            rej(err)
-        });
-    });
-}
-
-module.exports = get;
+module.exports = makeGetRequest(buf => JSON.parse(buf));
+module.exports.img = makeGetRequest(buf => buf);

@@ -12,12 +12,20 @@
         "type": "git",
         "url": "https://github.com/astelvida/gifcat.git"
     },
+    "scripts": {
+        "test": "ava test.js",
+        "test:watch": "ava test.js --watch"
+    },
     "dependencies": {
         "chalk": "^2.3.1",
         "clipboardy": "^1.2.3",
-        "gifencoder": "^1.1.0",
+        "concat-stream": "^1.6.0",
         "iterm2-version": "^2.3.0",
-        "meow": "^4.0.0"
+        "meow": "^4.0.0",
+        "pify": "^3.0.0"
+    },
+    "devDependencies": {
+        "ava": "^0.25.0"
     },
     "keywords": [
         "gif",
