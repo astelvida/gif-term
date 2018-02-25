@@ -27,7 +27,7 @@ function showRainAndExit(message) {
     readline.clearScreenDown(process.stdout);
     log(getImgString(rainGif, { width: 'auto', height: 5 }));
     savePos();
-    readline.moveCursor(process.stdout, 8, -3);
+    readline.moveCursor(process.stdout, 7, -3);
     log(chalk`{yellow.bold ${message}}  `);
     restorePos();
     process.exit();
@@ -39,7 +39,7 @@ function showCoolCat(message='') {
     savePos();
     log(getImgString(spinner, { height: 3, width: 8}));
     readline.moveCursor(process.stdout, 6, -2);
-    log(chalk`{cyan.bold ${`Translating "${message}" to gif...`}}`);
+    log(chalk`{cyan.bold ${`Translating "${message}" to gif...`}}  `);
 }
 
 const BASE_URL = 'https://api.giphy.com/v1'
@@ -81,7 +81,7 @@ async function textToGif(text, options) {
         const apiUrl = getApiUrl(text, options);
         const { data } = await get(apiUrl);
 
-        const gifObj = Array.isArray(data) ? data[0] : data;
+        const gifObj = Array.isArray(data) ? data[90] : data;
 
         if (!gifObj) {
             showRainAndExit();

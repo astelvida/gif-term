@@ -1,6 +1,6 @@
 # gifcat
 
->  Translates words and phrases to a gif image and displays it in the terminal.
+>  Translates words and phrases to a gif and displays it in the terminal.
 
 Powered by GIPHY API
 
