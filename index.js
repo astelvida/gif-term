@@ -1,8 +1,11 @@
 // 'use strict'
 const fs = require('fs');
+const readline= require('readline');
 const path= require('path');
 const qs = require('querystring');
 const clipboardy = require('clipboardy');
+const chalk = require('chalk');
+
 const pify = require('pify');
 
 const checkTermSupport = require('./checkTerm.js');
@@ -26,21 +29,20 @@ function getApiUrl(text, { lib, endpoint }) {
             params = { q: text, limit, offset };
             break;
         default: 
-            console.error(`${endpoint} does not exist`);
-            process.exit();
+            console.log(`The ${endpoint} API endpoint doesn\'t exist.'`);
     }
     params.api_key = GIPHY_API_KEY;
 
     return `${BASE_URL}/${lib}/${endpoint}?${qs.stringify(params)}`;
 }
 
-function getImgString(buffer, { width, height }) {    
+function getImgString(buffer, { width = 'auto', height = 'auto' }) {    
     const imgOptions = Object
         .entries({ inline: '1', height, width })
         .map(([k, v]) => `${k}=${v}`)
         .join(';');
 
-    return '\u001b]1337;File=' + imgOptions + ':' + buffer.toString('base64') + '\u0007';
+    return '\u001B]1337;File=' + imgOptions + ':' + buffer.toString('base64') + '\u0007';
 }
 
 async function textToGif(text, options) {
@@ -51,9 +53,7 @@ async function textToGif(text, options) {
         const gifObj = Array.isArray(data) ? data[0] : data;
 
         if (!gifObj) {
-            const imgBufferAlt = fs.readFileSync('./no-gif-meme.gif');
-            console.log(getImgString(imgBufferAlt, options));
-            process.exit();
+            showRainAndExit();
         }
         
         const imgBuffer = await get.img(gifObj.images.original.url);
@@ -63,20 +63,49 @@ async function textToGif(text, options) {
         
         return getImgString(imgBuffer, options);
     } catch (err) {
-        console.error(err);
+        console.log(err.message);
     }
+}
+
+
+const savePos = () => process.stdout.write('\u001B[s');
+const restorePos = () => process.stdout.write('\u001B[u');
+
+function showRainAndExit(message) {
+    message = message || 'No gif found. Try changing your input.'
+    const rainGif = fs.readFileSync('./rain.gif');
+    restorePos();
+    readline.clearScreenDown(process.stdout);
+    console.log(getImgString(rainGif, { width: 'auto', height: 5 }));
+    savePos()
+    readline.moveCursor(process.stdout, 8, -3);
+    console.log(chalk`{yellow.bold ${message}}  `);
+    restorePos();
+    process.exit();
+}
+
+function showCoolCat(message='') {
+    const spinner = fs.readFileSync('./cool_cat.gif');
+    const spinnerOpts = { height: 3, width: 8};
+    savePos();
+    console.log(getImgString(spinner, { height: 3, width: 8}));
+    readline.moveCursor(process.stdout, 6, -2);
+    console.log(chalk`{cyan.bold ${`Translating "${message}" to gif...`}}`);
 }
 
  async function main(text = '', opts = {}) {
     try {
+        showCoolCat(text);
+
         checkTermSupport();
-            
+        
         const options = {};
         options.lib = (opts.stickers && text) ? 'stickers' : 'gifs';
         options.endpoint = !text ? 'search' : 'translate';
         options.width = opts.width || 'auto',
-        options.height = options.width !== 'auto' ? 'auto' : (opts.height || '200px');
-        
+        options.height = opts.height || '250px';
+        options.log = opts.log === false ? false : true;
+
         if (opts.save === true) {
             const fileName = text ? `${text.replace(/[\W]+/g, '')}.gif` : 'lucky.gif';
             options.save = path.resolve(fileName);
@@ -85,14 +114,19 @@ async function textToGif(text, options) {
             let { name } = path.parse(opts.save);
             options.save = path.resolve(`${name}.gif`)
         }
-        
+
         const termGif = await textToGif(text, options);
 
-        (opts.log !== false) && console.log(termGif);
+        restorePos()
+        readline.clearScreenDown(process.stdout);
+
+        if (options.log !== false) {
+            console.log(termGif);
+        }
 
         return termGif;
     } catch(err) {
-        console.error(err);
+        console.log(err.message);
     }
 };
 
