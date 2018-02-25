@@ -1,4 +1,4 @@
-// 'use strict'
+'use strict'
 const fs = require('fs');
 const readline= require('readline');
 const path= require('path');
@@ -6,10 +6,41 @@ const qs = require('querystring');
 const clipboardy = require('clipboardy');
 const chalk = require('chalk');
 
-const pify = require('pify');
-
 const checkTermSupport = require('./checkTerm.js');
 const get = require('./get.js');
+
+const { log } = console;
+const savePos = () => process.stdout.write('\u001B[s');
+const restorePos = () => process.stdout.write('\u001B[u');
+
+function logErrorAndExit(err) {
+    restorePos();
+    readline.clearScreenDown(process.stdout);
+    log(chalk`{yellowBright ${err.name}: ${err.message}}`);
+    process.exit();
+}
+
+function showRainAndExit(message) {
+    message = message || 'No gif found. Try changing your input.'
+    const rainGif = fs.readFileSync('./rain.gif');
+    restorePos();
+    readline.clearScreenDown(process.stdout);
+    log(getImgString(rainGif, { width: 'auto', height: 5 }));
+    savePos();
+    readline.moveCursor(process.stdout, 8, -3);
+    log(chalk`{yellow.bold ${message}}  `);
+    restorePos();
+    process.exit();
+}
+
+function showCoolCat(message='') {
+    const spinner = fs.readFileSync('./cool_cat.gif');
+    const spinnerOpts = { height: 3, width: 8};
+    savePos();
+    log(getImgString(spinner, { height: 3, width: 8}));
+    readline.moveCursor(process.stdout, 6, -2);
+    log(chalk`{cyan.bold ${`Translating "${message}" to gif...`}}`);
+}
 
 const BASE_URL = 'https://api.giphy.com/v1'
 const PUBLIC_API_KEY = '3eFQvabDx69SMoOemSPiYfh9FY0nzO9x';
@@ -29,7 +60,7 @@ function getApiUrl(text, { lib, endpoint }) {
             params = { q: text, limit, offset };
             break;
         default: 
-            console.log(`The ${endpoint} API endpoint doesn\'t exist.'`);
+            log(`The ${endpoint} API endpoint doesn\'t exist.'`);
     }
     params.api_key = GIPHY_API_KEY;
 
@@ -59,46 +90,19 @@ async function textToGif(text, options) {
         const imgBuffer = await get.img(gifObj.images.original.url);
         
         options.clip && clipboardy.writeSync(gifObj.images.original.url);
-        options.save &&  pify(fs.writeFile)(options.save, imgBuffer);
+        options.save && fs.writeFile(options.save, imgBuffer, logErrorAndExit);
         
         return getImgString(imgBuffer, options);
     } catch (err) {
-        console.log(err.message);
+        logErrorAndExit(err.message);
     }
-}
-
-
-const savePos = () => process.stdout.write('\u001B[s');
-const restorePos = () => process.stdout.write('\u001B[u');
-
-function showRainAndExit(message) {
-    message = message || 'No gif found. Try changing your input.'
-    const rainGif = fs.readFileSync('./rain.gif');
-    restorePos();
-    readline.clearScreenDown(process.stdout);
-    console.log(getImgString(rainGif, { width: 'auto', height: 5 }));
-    savePos()
-    readline.moveCursor(process.stdout, 8, -3);
-    console.log(chalk`{yellow.bold ${message}}  `);
-    restorePos();
-    process.exit();
-}
-
-function showCoolCat(message='') {
-    const spinner = fs.readFileSync('./cool_cat.gif');
-    const spinnerOpts = { height: 3, width: 8};
-    savePos();
-    console.log(getImgString(spinner, { height: 3, width: 8}));
-    readline.moveCursor(process.stdout, 6, -2);
-    console.log(chalk`{cyan.bold ${`Translating "${message}" to gif...`}}`);
 }
 
  async function main(text = '', opts = {}) {
     try {
+        checkTermSupport();
         showCoolCat(text);
 
-        checkTermSupport();
-        
         const options = {};
         options.lib = (opts.stickers && text) ? 'stickers' : 'gifs';
         options.endpoint = !text ? 'search' : 'translate';
@@ -117,18 +121,20 @@ function showCoolCat(message='') {
 
         const termGif = await textToGif(text, options);
 
-        restorePos()
+        restorePos();
         readline.clearScreenDown(process.stdout);
 
         if (options.log !== false) {
-            console.log(termGif);
+            log(termGif);
         }
 
         return termGif;
     } catch(err) {
-        console.log(err.message);
+        logErrorAndExit(err);
     }
 };
+
+main();
 
 module.exports = main;
 
