@@ -16,10 +16,10 @@
         "test:watch": "ava test.js --watch"
     },
     "dependencies": {
-        "@astelvida/imgsrc-to-term": "^1.0.2",
         "chalk": "^2.3.1",
         "clipboardy": "^1.2.3",
         "concat-stream": "^1.6.0",
+        "img-term-string": "^1.0.2",
         "iterm2-version": "^2.3.0",
         "meow": "^4.0.0"
     },

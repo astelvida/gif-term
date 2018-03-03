@@ -1,16 +1,12 @@
 'use strict'
-const fs = require('fs');
-const readline= require('readline');
-const path= require('path');
 const qs = require('querystring');
 const clipboardy = require('clipboardy');
 const chalk = require('chalk');
 const debounce =  require('lodash.debounce');
-const getImgString = require('@astelvida/imgsrc-to-term')
+const getImgString = require('img-term-string')
 
 const checkTermSupport = require('./checkTerm.js');
 const get = require('./get.js');
-
 
 function logErrorAndExit(err) {
     const errMsg = err instanceof Error ? err.toString() : `Error: ${JSON.stringify(err)}`
@@ -35,23 +31,26 @@ function getApiUrl({text, lib, endpoint, page }) {
     return `${BASE_URL}/${lib}/${endpoint}?${qs.stringify(params)}`;
 }
 
+
 async function textToGif(text, { lib, endpoint, width, height }) {
     try {
         let { data } = await get(getApiUrl({ text, lib, endpoint} ));
-        if (Array.isArray(data) && !data.length) logErrorAndExit(`No matches for: ${JSON.stringify(text)}`);
-        
+        if (!data.id) return null;
+
         const src = data.images.fixed_height.url;        
-        const imgStr = await getImgString({ src: src, width, height })
+        const imgStr = await getImgString({ src, width, height })
             
-        return {  imgStr, src, ...cherryPick(data) };
+        return {  imgStr, ...cherryPick(data) };
+        
     } catch (err) {
         logErrorAndExit(err);
     }
 }
 
+
 function parseOptions(text, opts) {
     const options = {};
-    options.lib = (opts.stickers && text) ? 'stickers' : 'gifs';
+    options.lib = (opts.sticker && text) ? 'stickers' : 'gifs';
     options.endpoint = (!text || opts.tv) ? 'search' : 'translate';
 
     options.width = opts.width || 'auto',
@@ -73,24 +72,26 @@ function cherryPick(props) {
     }
 }
 
-async function main(text = '', options = {}, disableLog) {
+async function main(text = '', options = {}) {
     checkTermSupport();
     options = parseOptions(text, options);
     
-    try {
-        const { imgStr, src, ...props } = await textToGif(text, options);
-        options.clip && clipboardy.writeSync(src);
-
-        !disableLog && console.log(imgStr);
-        
-        return { imgStr, src, ...props };
-
-    } catch(err) {
-        logErrorAndExit(err);
+    const data = await textToGif(text, options)
+    if (!data) {
+        return logErrorAndExit('oops! input is invalid')
     }
+    console.log(data.imgStr);
+    options.clip && clipboardy.writeSync(data.url);
 };
 
-function gifTv(text, options) {
+
+function data(text = '', options = {}) {
+    checkTermSupport();
+    options = parseOptions(text, options);
+    return textToGif(text, options);
+};
+
+function tv(text, options) {
     checkTermSupport();
     options = parseOptions(text, options); 
 
@@ -103,12 +104,15 @@ function gifTv(text, options) {
     async function init(text, pg = 0) {
         page = pg;
         index = 0;
-        let resp = await get(getApiUrl({ text, lib, endpoint, page }));
-        if (!resp.data.length) logErrorAndExit(`No gif match for: ${text}`);
-        data = resp.data;
+        const apiUrl = getApiUrl({ text, lib, endpoint, page });
+        let resp = await get(apiUrl);
+        data = resp.data.length > 0 ? resp.data : null;
     }
     
     async function next() {
+        if (!data) {
+            return null;
+        }
         if (index === data.length - 1) {
             page++;
             await init(text, page);
@@ -116,14 +120,15 @@ function gifTv(text, options) {
         index++;
         const src = data[index].images.fixed_height.url;
         const imgStr = await getImgString({ src, width, height });
-        return { imgStr, ...cherryPick(data[index])}
+        return { imgStr, ...cherryPick(data[index]) };
     }
 
     return { next, init };
 }
 
 module.exports = main;
-module.exports.gifTv = gifTv;
+module.exports.data = data;
+module.exports.tv = tv;
 
 // used only internally for tests
 module.exports._ = { getApiUrl };

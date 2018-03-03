@@ -19,16 +19,8 @@ const gifcat = require('gifcat');
 
 gifcat('web surfing');
 
-gifcat('🐰');
+gifcat('wait. what?', { height: '50%', sticker: true });
 
-gifcat('wait. what?', { 
-    height: '50%',
-    save: 'lol.gif',  
-});
-
-gifcat('mind blown', { log : false })
-    .then(gifString => doSomething(gifString));
-    // the resolved promise provides access to the gif string
 ```
 
 ## API
@@ -37,8 +29,6 @@ gifcat('mind blown', { log : false })
  
 Logs the matching Gif to the terminal.<br> 
 Returns the string used to log the gif in the terminal.
-
-*Bonus! - a pixel art sticker gif is displayed while loading the gif*
 
 #### text
 
@@ -49,20 +39,12 @@ If no text is entered, you'll get a pretty timelapse gif.
 
 #### options
 
-##### stickers
+##### sticker
 
 Type: `boolean`<br>
 Default: `false`<br>
 
 Use stickers gifs instead of classic gifs.
-
-##### save 
-
-Type: `string` `boolean`<br>
-Default: `false`
-
-Saves the gif to a local file. The `.gif` extension is optional - will add it if it's not there.<br>
-If set to `true`(bool, no text), it defaults to `<text>.gif` or `lucky.gif` if text input is not given.
 
 ##### clip
 
@@ -80,12 +62,6 @@ Options: `Npx` `N%` `N` `auto`
 
 Set gif width/height in pixels(`Npx`), as a % of the terminal view(`N%`), number of char cells(`N`), or allow it to autoscale based on the image dimensions(`auto`).<br>
 *Note*: The aspect ratio of the image will be preserved.
-
-##### log
-Type: `boolean`<br>
-Default: `true`
-
-Doesn't log the gif to the terminal. Useful if you only need the the gif image string.
 
 ## Docs
 
