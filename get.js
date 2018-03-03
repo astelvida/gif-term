@@ -1,14 +1,13 @@
 const https = require('https');
 const concat = require('concat-stream');
 
-const makeGetRequest = f => url =>
+const get = url =>
     new Promise(resolve =>
         https.get(url, resp => 
             resp.pipe(
-                concat(body => resolve(f(body)))
+                concat(body => resolve(JSON.parse(body)))
             )
         )
     );
 
-module.exports = makeGetRequest(buf => JSON.parse(buf));
-module.exports.img = makeGetRequest(buf => buf);
+module.exports = get;

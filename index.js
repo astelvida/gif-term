@@ -5,140 +5,125 @@ const path= require('path');
 const qs = require('querystring');
 const clipboardy = require('clipboardy');
 const chalk = require('chalk');
+const debounce =  require('lodash.debounce');
+const getImgString = require('@astelvida/imgsrc-to-term')
 
 const checkTermSupport = require('./checkTerm.js');
 const get = require('./get.js');
 
-const { log } = console;
-const logToTerm = (img, logImg = true) => ( logImg !== false ? log(img) : null)
-const savePos = () => process.stdout.write('\u001B[s');
-const restorePos = () => process.stdout.write('\u001B[u');
 
 function logErrorAndExit(err) {
-    restorePos();
-    readline.clearScreenDown(process.stdout);
-    log(chalk`{yellowBright ${err.name}: ${err.message}}`);
+    const errMsg = err instanceof Error ? err.toString() : `Error: ${JSON.stringify(err)}`
+    console.log(chalk`{yellowBright ${errMsg}}`);
     process.exit();
 }
 
-function showRain(message) {
-    message = message || 'No gif found. Try changing your input.'
-    const rainGif = fs.readFileSync(path.resolve(__dirname, './media/rain.gif'));
-    restorePos();
-    readline.clearScreenDown(process.stdout);
-    log(getImgString(rainGif, { width: 'auto', height: 5 }));
-    savePos();
-    readline.moveCursor(process.stdout, 7, -3);
-    log(chalk`{yellow.bold ${message}}  `);
-    restorePos();
-}
-
-function showCoolCat(message='') {
-    const spinner = fs.readFileSync(path.resolve(__dirname, './media/cool_cat.gif'));
-    const spinnerOpts = { height: 3, width: 8};
-    savePos();
-    log(getImgString(spinner, { height: 3, width: 8}));
-    readline.moveCursor(process.stdout, 9, -2);
-    log(chalk`{cyan.bold ${`Translating "${message}" to gif...`} }  `);
-}
-
 const BASE_URL = 'https://api.giphy.com/v1'
-const PUBLIC_API_KEY = '3eFQvabDx69SMoOemSPiYfh9FY0nzO9x';
+const PUBLIC_API_KEY = '3eFQvabDx69SMoOemSP iYfh9FY0nzO9x';
 const GIPHY_API_KEY = process.env.GIPHY_API_KEY || PUBLIC_API_KEY;
 
-function getApiUrl(text, { lib, endpoint }) {
-    text = text || 'timelapse';
-    let params = {};
-
-    switch (endpoint) {
-        case 'translate':
-            params = { s: text };
-            break;
-        case 'search':
-            const limit = 50;
-            const offset = Math.floor(Math.random() * limit);
-            params = { q: text, limit, offset };
-            break;
-        default: 
-            log(`The ${endpoint} API endpoint doesn\'t exist.'`);
+function getApiUrl({text, lib, endpoint, page }) {
+    const params = { api_key: GIPHY_API_KEY };
+    if(endpoint === 'translate') {
+        params.s = text;
     }
-    params.api_key = GIPHY_API_KEY;
-
+    if(endpoint === 'search') {
+        params.q = text;
+        params.limit = 100;
+        params.offset = params.limit * page;
+    }
     return `${BASE_URL}/${lib}/${endpoint}?${qs.stringify(params)}`;
 }
 
-function getImgString(buffer, { width = 'auto', height = 'auto' }) {    
-    const imgOptions = Object
-        .entries({ inline: '1', height, width })
-        .map(([k, v]) => `${k}=${v}`)
-        .join(';');
-
-    return '\u001B]1337;File=' + imgOptions + ':' + buffer.toString('base64') + '\u0007';
-}
-
-async function textToGif(text, options) {
+async function textToGif(text, { lib, endpoint, width, height }) {
     try {
-        const apiUrl = getApiUrl(text, options);
-        const { data } = await get(apiUrl);
-
-        const gifObj = Array.isArray(data) ? data[0] : data;
-
-        if (!gifObj) {
-            options.log && showRain();
-            process.exit();
-        }
+        let { data } = await get(getApiUrl({ text, lib, endpoint} ));
+        if (Array.isArray(data) && !data.length) logErrorAndExit(`No matches for: ${JSON.stringify(text)}`);
         
-        const imgBuffer = await get.img(gifObj.images.original.url);
-        
-        options.clip && clipboardy.writeSync(gifObj.images.original.url);
-        options.save && fs.writeFile(options.save, imgBuffer, 
-            (err) => (err ? logErrorAndExit(err) : chalk`{magenta saved in ${options.save}}`)
-        );
-        
-        return getImgString(imgBuffer, options);
+        const src = data.images.fixed_height.url;        
+        const imgStr = await getImgString({ src: src, width, height })
+            
+        return {  imgStr, src, ...cherryPick(data) };
     } catch (err) {
-        logErrorAndExit(err.message);
+        logErrorAndExit(err);
     }
 }
 
- async function main(text = '', opts = {}) {
-    try {
-        checkTermSupport();
+function parseOptions(text, opts) {
+    const options = {};
+    options.lib = (opts.stickers && text) ? 'stickers' : 'gifs';
+    options.endpoint = (!text || opts.tv) ? 'search' : 'translate';
 
-        const options = {};
-        options.lib = (opts.stickers && text) ? 'stickers' : 'gifs';
-        options.endpoint = !text ? 'search' : 'translate';
-        options.width = opts.width || 'auto',
-        options.height = opts.height || '270px';
-        options.clip = options.clip || false;
-        options.log = opts.log === false ? false : true;
+    options.width = opts.width || 'auto',
+    options.height = opts.height || '200px';
+    options.clip = opts.clip || false;
 
-        options.log && showCoolCat(text);
+    return options;
+}
 
-        if (opts.save === true) {
-            const fileName = text ? `${text.replace(/[\W]+/g, '')}.gif` : 'lucky.gif';
-            options.save = path.resolve(fileName);
+
+function cherryPick(props) {
+    return {
+        username: props.username,
+        title: props.title,
+        slug: props.slug,
+        url: props.images.fixed_height.url,
+        width: props.images.fixed_height.width,
+        height: props.images.fixed_height.height,
+    }
+}
+
+async function main(text = '', options = {}, disableLog) {
+    checkTermSupport();
+    options = parseOptions(text, options);
     
-        } else if (opts.save && typeof opts.save === 'string') {
-            let { name } = path.parse(opts.save);
-            options.save = path.resolve(`${name}.gif`)
-        }
+    try {
+        const { imgStr, src, ...props } = await textToGif(text, options);
+        options.clip && clipboardy.writeSync(src);
 
-        const termGif = await textToGif(text, options);
+        !disableLog && console.log(imgStr);
+        
+        return { imgStr, src, ...props };
 
-        options.log && restorePos();
-        options.log && readline.clearScreenDown(process.stdout);
-        logToTerm(termGif, options.log);
-
-        return termGif;
     } catch(err) {
         logErrorAndExit(err);
     }
 };
 
+function gifTv(text, options) {
+    checkTermSupport();
+    options = parseOptions(text, options); 
+
+    const { lib, endpoint, width, height } = options;
+    
+    let page = 0;
+    let index = 0;
+    let data;
+
+    async function init(text, pg = 0) {
+        page = pg;
+        index = 0;
+        let resp = await get(getApiUrl({ text, lib, endpoint, page }));
+        if (!resp.data.length) logErrorAndExit(`No gif match for: ${text}`);
+        data = resp.data;
+    }
+    
+    async function next() {
+        if (index === data.length - 1) {
+            page++;
+            await init(text, page);
+        }
+        index++;
+        const src = data[index].images.fixed_height.url;
+        const imgStr = await getImgString({ src, width, height });
+        return { imgStr, ...cherryPick(data[index])}
+    }
+
+    return { next, init };
+}
+
 module.exports = main;
+module.exports.gifTv = gifTv;
 
 // used only internally for tests
-module.exports._ = { getApiUrl, getImgString };
-
-
+module.exports._ = { getApiUrl };
