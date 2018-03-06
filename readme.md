@@ -1,40 +1,44 @@
-# gifcat
+# gif-term
 
 >  Translates words and phrases to a GIF and displays it in the terminal.
 
-![](./media/demo.gif)
+![](./demo.gif)
 
 *Currently supported on [iTerm2 >= 3](https://www.iterm2.com/downloads.html).*
 
 ## Install
 
 ```
-$ npm install gifcat
+$ npm install gif-term
 ```
 
 ## Usage
 
 ```js
-const gifcat = require('gifcat');
+const gifTerm = require('gif-term');
 
-gifcat('web surfing');
+gifTerm('web surfing');
 
-gifcat('wait. what?', { height: '50%', sticker: true });
+gifTerm('wait. what?', { height: '50%', sticker: true });
 
 ```
 
 ## API
 
-### gifcat(<text>, [options])
+### gifTerm(text, [options])
  
 Logs the matching Gif to the terminal.<br> 
 Returns the string used to log the gif in the terminal.
+
+### gifTerm.data(text, [options])
+
+Returns an object with relevant gif data including the image string which you can use to log manually in the terminal.
 
 #### text
 
 Type: `string` 
 
-The text input that you want to translate into a gif.🌈Emojis are also supported!🌈<br>
+The text input that you want to translate into a gif. 🌈 Emojis are also supported! 🌈 <br>
 If no text is entered, you'll get a pretty timelapse gif.
 
 #### options
@@ -60,8 +64,17 @@ Type: `string` `number`<br>
 Default: *width* - `auto` | *height* - `250px`<br>
 Options: `Npx` `N%` `N` `auto`
 
-Set gif width/height in pixels(`Npx`), as a % of the terminal view(`N%`), number of char cells(`N`), or allow it to autoscale based on the image dimensions(`auto`).<br>
+Set the width and height of the image.
+ - in pixels(`Npx`)
+ - as a % of the terminal view(`N%`)
+ - number of char cells(`N`)
+ - autoscale based on the image dimensions(`auto`)
+
 *Note*: The aspect ratio of the image will be preserved.
+
+## Related
+
+- gifty-cli
 
 ## Docs
 

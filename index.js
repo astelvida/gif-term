@@ -15,10 +15,9 @@ function logErrorAndExit(err) {
 }
 
 const BASE_URL = 'https://api.giphy.com/v1'
-const PUBLIC_API_KEY = '3eFQvabDx69SMoOemSP iYfh9FY0nzO9x';
-const GIPHY_API_KEY = process.env.GIPHY_API_KEY || PUBLIC_API_KEY;
+const GIPHY_API_KEY = '3eFQvabDx69SMoOemSPiYfh9FY0nzO9x';
 
-function getApiUrl({text, lib, endpoint, page }) {
+function getApiUrl({ text, lib, endpoint, page }) {
     const params = { api_key: GIPHY_API_KEY };
     if(endpoint === 'translate') {
         params.s = text;
@@ -34,7 +33,8 @@ function getApiUrl({text, lib, endpoint, page }) {
 
 async function textToGif(text, { lib, endpoint, width, height }) {
     try {
-        let { data } = await get(getApiUrl({ text, lib, endpoint} ));
+        const apiUrl = getApiUrl({ text, lib, endpoint });
+        const { data } = await get(apiUrl);
         if (!data.id) return null;
 
         const src = data.images.fixed_height.url;        
@@ -73,62 +73,37 @@ function cherryPick(props) {
 }
 
 async function main(text = '', options = {}) {
-    checkTermSupport();
-    options = parseOptions(text, options);
+    try {
+        checkTermSupport();
+        options = parseOptions(text, options);
+        
+        const data = await textToGif(text, options)
+        if (!data) logErrorAndExit('oops! input is invalid');
     
-    const data = await textToGif(text, options)
-    if (!data) {
-        return logErrorAndExit('oops! input is invalid')
+        console.log(data.imgStr);
+        options.clip && clipboardy.writeSync(data.url);
+        
+    } catch (err) {
+        logErrorAndExit(err);
     }
-    console.log(data.imgStr);
-    options.clip && clipboardy.writeSync(data.url);
 };
 
 
 function data(text = '', options = {}) {
-    checkTermSupport();
-    options = parseOptions(text, options);
-    return textToGif(text, options);
+    try {
+        checkTermSupport();
+        options = parseOptions(text, options);
+        return textToGif(text, options);
+
+    } catch (err) {
+        logErrorAndExit(err);
+    }
 };
 
-function tv(text, options) {
-    checkTermSupport();
-    options = parseOptions(text, options); 
-
-    const { lib, endpoint, width, height } = options;
-    
-    let page = 0;
-    let index = 0;
-    let data;
-
-    async function init(text, pg = 0) {
-        page = pg;
-        index = 0;
-        const apiUrl = getApiUrl({ text, lib, endpoint, page });
-        let resp = await get(apiUrl);
-        data = resp.data.length > 0 ? resp.data : null;
-    }
-    
-    async function next() {
-        if (!data) {
-            return null;
-        }
-        if (index === data.length - 1) {
-            page++;
-            await init(text, page);
-        }
-        index++;
-        const src = data[index].images.fixed_height.url;
-        const imgStr = await getImgString({ src, width, height });
-        return { imgStr, ...cherryPick(data[index]) };
-    }
-
-    return { next, init };
-}
+main("mind blown", { height: '50%', clip: true });
 
 module.exports = main;
 module.exports.data = data;
-module.exports.tv = tv;
 
 // used only internally for tests
 module.exports._ = { getApiUrl };
