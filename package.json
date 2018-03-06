@@ -1,7 +1,7 @@
 {
-    "name": "@astelvida/gifcat",
-    "version": "1.0.4",
-    "description": "Translate text to gifs",
+    "name": "gif-term",
+    "version": "1.0.0",
+    "description": "Translate text to a GIF and log it in the terminal",
     "license": "MIT",
     "author": {
         "name": "astelvida",
