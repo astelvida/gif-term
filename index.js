@@ -1,4 +1,4 @@
-'use strict'
+// 'use strict';
 const qs = require('querystring');
 const clipboardy = require('clipboardy');
 const chalk = require('chalk');
@@ -9,8 +9,8 @@ const checkTermSupport = require('./checkTerm.js');
 const get = require('./get.js');
 
 function logErrorAndExit(err) {
-    const errMsg = err instanceof Error ? err.toString() : `Error: ${JSON.stringify(err)}`
-    console.log(chalk`{yellowBright ${errMsg}}`);
+    const errMsg = err instanceof Error ? err.toString() : err;
+    console.log(chalk`{bold ${errMsg}}`);
     process.exit();
 }
 
@@ -35,11 +35,10 @@ async function textToGif(text, { lib, endpoint, width, height }) {
     try {
         const apiUrl = getApiUrl({ text, lib, endpoint });
         const { data } = await get(apiUrl);
-        if (!data.id) return null;
+        
+        if (!data || !data.id) return { errorMsg: chalk`{bold Oops! no gif match 🙊  🙈  🙉  - try a different input}`};
 
-        const src = data.images.fixed_height.url;        
-        const imgStr = await getImgString({ src, width, height })
-            
+        const imgStr = await getImgString({ src: data.images.fixed_height.url, width, height });
         return {  imgStr, ...cherryPick(data) };
         
     } catch (err) {
@@ -54,7 +53,7 @@ function parseOptions(text, opts) {
     options.endpoint = (!text || opts.tv) ? 'search' : 'translate';
 
     options.width = opts.width || 'auto',
-    options.height = opts.height || '200px';
+    options.height = opts.height || 'auto';
     options.clip = opts.clip || false;
 
     return options;
@@ -72,16 +71,20 @@ function cherryPick(props) {
     }
 }
 
-async function main(text = '', options = {}) {
+async function main(text, options = {}) {
     try {
         checkTermSupport();
+        
+        if (!text) logErrorAndExit('Enter some text! 🙉');
         options = parseOptions(text, options);
         
         const data = await textToGif(text, options)
-        if (!data) logErrorAndExit('oops! input is invalid');
-    
-        console.log(data.imgStr);
-        options.clip && clipboardy.writeSync(data.url);
+
+        let output = data.imgStr || data.errorMsg;        
+        console.log(output);
+        
+        let url = data.url || null;
+        if (options.clip && url) clipboardy.writeSync(url);
         
     } catch (err) {
         logErrorAndExit(err);
@@ -93,14 +96,13 @@ function data(text = '', options = {}) {
     try {
         checkTermSupport();
         options = parseOptions(text, options);
+
         return textToGif(text, options);
 
     } catch (err) {
         logErrorAndExit(err);
     }
 };
-
-main("mind blown", { height: '50%', clip: true });
 
 module.exports = main;
 module.exports.data = data;

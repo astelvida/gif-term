@@ -1,8 +1,8 @@
 # gif-term
 
->  Translates words and phrases to a GIF and displays it in the terminal.
+>  Translate words and phrases to a GIF and display it in the terminal.
 
-![](./demo.gif)
+!['mind blown'](./mind-blown.gif)
 
 *Currently supported on [iTerm2 >= 3](https://www.iterm2.com/downloads.html).*
 
@@ -17,18 +17,16 @@ $ npm install gif-term
 ```js
 const gifTerm = require('gif-term');
 
-gifTerm('web surfing');
+gifTerm('mind blown');
 
-gifTerm('wait. what?', { height: '50%', sticker: true });
-
+gifTerm('wait. whaaaat?', { clip: true, width: '100%' });
 ```
 
 ## API
 
 ### gifTerm(text, [options])
  
-Logs the matching Gif to the terminal.<br> 
-Returns the string used to log the gif in the terminal.
+Logs the matching Gif to the terminal.
 
 ### gifTerm.data(text, [options])
 
@@ -38,8 +36,8 @@ Returns an object with relevant gif data including the image string which you ca
 
 Type: `string` 
 
-The text input that you want to translate into a gif. 🌈 Emojis are also supported! 🌈 <br>
-If no text is entered, you'll get a pretty timelapse gif.
+The text input that you want to translate into a gif. 
+Works with emojis too! 🌈
 
 #### options
 
@@ -61,7 +59,7 @@ Copy the gif url to your clipboard.
 ##### height
 
 Type: `string` `number`<br>
-Default: *width* - `auto` | *height* - `250px`<br>
+Default: `auto`<br>
 Options: `Npx` `N%` `N` `auto`
 
 Set the width and height of the image.
@@ -74,7 +72,7 @@ Set the width and height of the image.
 
 ## Related
 
-- gifty-cli
+- [gif-term-cli](...)
 
 ## Docs
 
