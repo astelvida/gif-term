@@ -9,7 +9,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/astelvida/gifcat.git"
+        "url": "https://github.com/astelvida/gif-term.git"
     },
     "scripts": {
         "test": "ava test.js",
@@ -28,18 +28,19 @@
     },
     "keywords": [
         "gif",
-        "gifs",
+        "terminal",
+        "cli",
         "giphy",
+        "gifs",
         "image",
         "iterm",
         "iterm2",
-        "terminal",
+        "term",
         "console",
         "shell",
         "command-line",
         "text",
         "stickers",
-        "app",
-        "version"
+        "app"
     ]
 }
