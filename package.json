@@ -2,15 +2,18 @@
     "name": "gif-term",
     "version": "1.0.0",
     "description": "Translate text to a GIF and log it in the terminal",
-    "license": "MIT",
     "author": {
         "name": "astelvida",
         "email": "sevda.m.anefi@gmail.com"
     },
+    "homepage": "https://github.com/astelvida/gif-term",
     "repository": {
         "type": "git",
         "url": "https://github.com/astelvida/gif-term.git"
     },
+    "engines": {
+		"node": ">=8"
+	},
     "scripts": {
         "test": "ava test.js",
         "test:watch": "ava test.js --watch"
@@ -28,19 +31,16 @@
     },
     "keywords": [
         "gif",
-        "terminal",
-        "cli",
-        "giphy",
-        "gifs",
-        "image",
-        "iterm",
-        "iterm2",
         "term",
+        "cli",
+        "image",
+        "terminal",
+        "iterm",
+        "log",
+        "iterm2",
         "console",
-        "shell",
         "command-line",
-        "text",
-        "stickers",
-        "app"
-    ]
+        "giphy"
+    ],
+    "license": "MIT"
 }
