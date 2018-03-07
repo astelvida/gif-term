@@ -1,7 +1,7 @@
 {
     "name": "gif-term",
     "version": "1.0.0",
-    "description": "Translate text to a GIF and log it in the terminal",
+    "description": "Translate text to a GIF and log it to the terminal",
     "author": {
         "name": "astelvida",
         "email": "sevda.m.anefi@gmail.com"

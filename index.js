@@ -2,7 +2,6 @@
 const qs = require('querystring');
 const clipboardy = require('clipboardy');
 const chalk = require('chalk');
-const debounce =  require('lodash.debounce');
 const getImgString = require('img-term-string')
 
 const checkTermSupport = require('./checkTerm.js');

@@ -1,4 +1,4 @@
-# gif-term
+# gif-term [![Build Status](https://travis-ci.org/astelvida/gif-term.svg?branch=master)](https://travis-ci.org/astelvida/gif-term)
 
 >  Translate words and phrases to a GIF and display it in the terminal.
 
@@ -72,7 +72,7 @@ Set the width and height of the image.
 
 ## Related
 
-- [gif-term-cli](...)
+- [gif-term-cli](https://github.com/astelvida/gif-term-cli) - CLI tool with interactive gif search feature
 
 ## Docs
 
